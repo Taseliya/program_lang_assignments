@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define the number of registers
+#define NUM_REGISTERS 32
+
+// Array to hold the register values
+int registers[NUM_REGISTERS];
+
+// Function to execute commands from the SimLan language
+void executeCommand(char *line) {
+    char command[10];
+    char arg1[10], arg2[10];
+    int value, regIndex;
+
+    // Extract command and arguments
+    sscanf(line, "%s", command); // Get the command
+
+    // Check for command
+    if (strcmp(command, "put") == 0) {
+        // Example: put 1,r5
+        sscanf(line, "%*s %d,%s", &value, arg2); // Ignore command, get value and register
+        regIndex = atoi(&arg2[1]); // Convert register name to index (assuming r0, r1, ...)
+
+        // Store value in register
+        registers[regIndex] = value;
+        printf("Put %d into register %s (index %d)\n", value, arg2, regIndex);
+    } else if (strcmp(command, "add") == 0) {
+        // Example: add r5,r1
+        sscanf(line, "%*s %s,%s", arg1, arg2); // Get registers
+        int regIndex1 = atoi(&arg1[1]); // Convert r5 to index
+        int regIndex2 = atoi(&arg2[1]); // Convert r1 to index
+
+        // Add values of registers and store in regIndex1
+        registers[regIndex1] += registers[regIndex2];
+        printf("Added register %s to register %s\n", arg1, arg2);
+    } else if (strcmp(command, "prn") == 0) {
+        // Example: prn r1
+        sscanf(line, "%*s %s", arg1); // Get the register
+        regIndex = atoi(&arg1[1]); // Convert r1 to index
+
+        // Print the value of the register
+        printf("Register %s: %d\n", arg1, registers[regIndex]);
+    } else if (strcmp(command, "jmpe") == 0) {
+        // Example: jmpe r1,r2,8
+        sscanf(line, "%*s %s,%s,%d", arg1, arg2, &value); // Get registers and jump line number
+        regIndex = atoi(&arg1[1]); // Convert r1 to index
+        int regIndex2 = atoi(&arg2[1]); // Convert r2 to index
+
+        // Check if jump condition is met
+        if (registers[regIndex] == registers[regIndex2]) {
+            printf("Jumping to line %d\n", value);
+            // Implement jump logic here (manage line numbers)
+        }
+    } else if (strcmp(command, "jmpu") == 0) {
+        // Example: jmpu 4
+        sscanf(line, "%*s %d", &value); // Get jump line number
+        printf("Unconditional jump to line %d\n", value);
+        // Implement jump logic here
+    } else if (strcmp(command, "halt") == 0) {
+        printf("Halting execution.\n");
+        // Implement halt logic here (stop processing further commands)
+    } else {
+        printf("Unknown command: %s\n", command);
+    }
+}
+
+// Main function to read the SimLan program and execute commands
+int main() {
+    // Initialize registers to 0
+    memset(registers, 0, sizeof(registers));
+
+    FILE *file = fopen("program.sla", "r"); // Open SimLan program file
+    if (!file) {
+        perror("Failed to open file");
+        return EXIT_FAILURE; // Exit if file cannot be opened
+    }
+
+    char line[100]; // Buffer to hold each line from the file
+    while (fgets(line, sizeof(line), file)) {
+        printf("Read line: %s", line); // Print the line for verification
+        executeCommand(line); // Execute the command
+    }
+
+    fclose(file); // Close the file
+    return EXIT_SUCCESS; // Return success
+}

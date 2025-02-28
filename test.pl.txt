@@ -1,0 +1,2 @@
+% A simple Prolog program
+hello :- write('Hello, World!').
